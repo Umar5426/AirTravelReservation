@@ -1,11 +1,16 @@
 package main.java.model;
 
+import java.util.Date;
+
 public class Customer {
     String fname;
     String lname;
-    String dob;
+    Date dob;
     String customerID;
 
-    PaymentInfo savedPaymentInfo;
+    String username;
+    String password;
+
+
 
 }
