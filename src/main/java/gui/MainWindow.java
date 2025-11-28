@@ -18,85 +18,120 @@ public class MainWindow extends JFrame {
         this.isGuest = isGuest;
         this.customerService = new CustomerService();
 
-        setTitle("Flight Reservation System - Main Menu");
+        setTitle("Flight Reservation System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 400);
+        setSize(750, 500);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // ===== Title =====
-        JLabel titleLabel = new JLabel("Flight Reservation System", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        // ============================================================
+        // TOP TITLE
+        // ============================================================
+        JLabel titleLabel = new JLabel("Book Your Flight", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 26));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         add(titleLabel, BorderLayout.NORTH);
 
-        // ===== Buttons Panel =====
-        JPanel btnPanel = new JPanel();
-        btnPanel.setLayout(new GridLayout(7, 1, 10, 10));
-        btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        // ============================================================
+        // LEFT SIDE MENU
+        // ============================================================
+        JPanel menuPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        menuPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JButton searchBtn = new JButton("Search Flights");
         JButton viewBtn = new JButton("View Flight");
-        JButton reserveBtn = new JButton("Make Reservation");
-        JButton modifyBtn = new JButton("Modify Reservation");
-        JButton cancelBtn = new JButton("Cancel Reservation");
-        JButton historyBtn = new JButton("View Booking History");
+        JButton historyBtn = new JButton("Booking History");
         JButton logoutBtn = new JButton("Logout");
 
-        btnPanel.add(searchBtn);
-        btnPanel.add(viewBtn);
-        btnPanel.add(reserveBtn);
-        btnPanel.add(modifyBtn);
-        btnPanel.add(cancelBtn);
-        btnPanel.add(historyBtn);
-        btnPanel.add(logoutBtn);
+        menuPanel.add(searchBtn);
+        menuPanel.add(viewBtn);
+        menuPanel.add(historyBtn);
+        menuPanel.add(logoutBtn);
 
-        add(btnPanel, BorderLayout.CENTER);
-
-        // Disable restricted buttons if guest
+        // Disable restricted buttons for guests
         if (isGuest) {
-            reserveBtn.setEnabled(false);
-            modifyBtn.setEnabled(false);
-            cancelBtn.setEnabled(false);
+            viewBtn.setEnabled(false);
             historyBtn.setEnabled(false);
         }
 
-        // ===== EVENT LISTENERS =====
+        add(menuPanel, BorderLayout.WEST);
 
-        searchBtn.addActionListener(e -> {
-            customerService.searchFlights();
-            JOptionPane.showMessageDialog(this, 
-                "Searching flights... (service call triggered)");
+        // ============================================================
+        // CENTER PANEL — "EXPEDIA STYLE" FLIGHT SEARCH BOX
+        // ============================================================
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new GridBagLayout());
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JTextField fromField = new JTextField();
+        JTextField toField = new JTextField();
+        JTextField departDateField = new JTextField();
+        JTextField returnDateField = new JTextField();
+
+        JLabel fromLabel = new JLabel("From (Area Code):");
+        JLabel toLabel = new JLabel("To (Area Code):");
+        JLabel departLabel = new JLabel("Departure Date (YYYY-MM-DD):");
+        JLabel returnLabel = new JLabel("Return Date (YYYY-MM-DD):");
+
+        gbc.gridx = 0; gbc.gridy = 0; searchPanel.add(fromLabel, gbc);
+        gbc.gridx = 1; searchPanel.add(fromField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; searchPanel.add(toLabel, gbc);
+        gbc.gridx = 1; searchPanel.add(toField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; searchPanel.add(departLabel, gbc);
+        gbc.gridx = 1; searchPanel.add(departDateField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3; searchPanel.add(returnLabel, gbc);
+        gbc.gridx = 1; searchPanel.add(returnDateField, gbc);
+
+        JButton bigSearchButton = new JButton("Search Flights");
+        bigSearchButton.setFont(new Font("Arial", Font.BOLD, 16));
+
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        searchPanel.add(bigSearchButton, gbc);
+
+        add(searchPanel, BorderLayout.CENTER);
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        // Side-panel search button also triggers the search
+        searchBtn.addActionListener(e -> bigSearchButton.doClick());
+
+        bigSearchButton.addActionListener(e -> {
+            String from = fromField.getText().trim();
+            String to = toField.getText().trim();
+            String depart = departDateField.getText().trim();
+            String ret = returnDateField.getText().trim();
+
+            if (from.isEmpty() || to.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Enter both departure and arrival area codes.",
+                        "Missing Info",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Pass the search values to the next GUI
+            FlightSearchWindow fsw = new FlightSearchWindow(isGuest);
+            fsw.setVisible(true);
+            dispose();
         });
 
         viewBtn.addActionListener(e -> {
             customerService.viewFlight();
-            JOptionPane.showMessageDialog(this, 
-                "Viewing flight... (service call triggered)");
+            JOptionPane.showMessageDialog(this, "Viewing flight...");
         });
 
-        reserveBtn.addActionListener(e -> {
-            customerService.makeReservation();
-            JOptionPane.showMessageDialog(this, 
-                "Making reservation...");
-        });
-
-        modifyBtn.addActionListener(e -> {
-            customerService.modifyReservation();
-            JOptionPane.showMessageDialog(this, 
-                "Modifying reservation...");
-        });
-
-        cancelBtn.addActionListener(e -> {
-            customerService.cancelReservation();
-            JOptionPane.showMessageDialog(this, 
-                "Cancelling reservation...");
-        });
-
-        historyBtn.addActionListener(e -> {
-            customerService.viewBookingHistory();
-            JOptionPane.showMessageDialog(this, 
-                "Showing booking history...");
-        });
+        historyBtn.addActionListener(e -> new BookingHistoryWindow().setVisible(true));
 
         logoutBtn.addActionListener(e -> {
             new LoginWindow().setVisible(true);
