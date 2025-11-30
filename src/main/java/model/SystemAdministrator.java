@@ -18,23 +18,22 @@ public class SystemAdministrator {
     
     // Login
     public boolean login(String username, String password, List<Customer> customers) {
-        
-		// Looping through all of the customers here that are passed into this method here
-		for (Customer c : customers) {
-			if (c.username.equals(username) && c.password.equals(password)) {
-				// If match found -> login success
-				this.loggedIn = true;
-				this.loggedCustomer = c;
-				
-				System.out.println("Login is successful! You are Welcome, " + c.fname + " " + c.lname);
-				return true;
-		    }
-		}
-		
-		// If no match is found then do this
-		System.out.println("Invalid username or password.");
-		return false;
-	}
+
+    for (Customer c : customers) {
+        if (c.getUsername().equals(username) && c.getPassword().equals(password)) {
+            this.loggedIn = true;
+            this.loggedCustomer = c;
+
+            System.out.println("Login is successful! You are Welcome, " 
+                               + c.getFname() + " " + c.getLname());
+            return true;
+        }
+    }
+
+    System.out.println("Invalid username or password.");
+    return false;
+}
+
 	
     // Admin Functions
     public void addFlight(Flight flight) {
