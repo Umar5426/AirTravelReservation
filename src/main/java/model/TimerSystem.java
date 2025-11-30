@@ -1,64 +1,83 @@
 package main.java.model;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Vector;
 
-public class TimerSystem implements Subject<MonthlyPromotionEvent> {
-    private final Set<Observer<MonthlyPromotionEvent>> observers = ConcurrentHashMap.newKeySet();
-    private final Clock clock;
-    private ScheduledExecutorService scheduler;
-    private volatile YearMonth lastNotified;
+/*
+ * TimerSystem represents the external Timer/Clock actor in the use-case diagram.
+ * It is the Subject in the Observer pattern:
+ *  - Observers register() to get notified
+ *  - When the 1st day of the month happens, TimerSystem notifies observers
+ *
+ * IMPORTANT:
+ * TimerSystem does NOT do any GUI code or DB code.
+ * It only triggers notifications by calling update(...) on observers.
+ */
+public class TimerSystem implements Subject {
+
+
+    private final Vector observers;
+
+    /*
+     * Prevent sending multiple notifications in the same month.
+     * Even if GUI calls checkAndNotify(...) many times, we only notify once per month.
+     */
+    private YearMonth lastNotifiedMonth;
 
     public TimerSystem() {
-        this(Clock.systemDefaultZone());
-    }
-
-    public TimerSystem(Clock clock) {
-        this.clock = clock;
+        observers = new Vector();
+        lastNotifiedMonth = null;
     }
 
     @Override
-    public void register(Observer<MonthlyPromotionEvent> observer) {
-        observers.add(observer);
+    public void register(Observer observer) {
+        if (observer == null) return;
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
     }
 
     @Override
-    public void unregister(Observer<MonthlyPromotionEvent> observer) {
+    public void unregister(Observer observer) {
         observers.remove(observer);
     }
 
-    public void start() {
-        if (scheduler != null) return;
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this::tickNow, 0, 1, TimeUnit.HOURS);
+    /*
+     * The GUI (or app startup) can call this daily, hourly, or on startup.
+     * If today is day 1, we trigger the monthly promotion event.
+     */
+    public void checkAndNotify(LocalDate today) {
+        if (today == null) return;
+
+        if (today.getDayOfMonth() != 1) {
+            return;
+        }
+
+        YearMonth currentMonth = YearMonth.from(today);
+
+        if (lastNotifiedMonth != null && lastNotifiedMonth.equals(currentMonth)) {
+            return;
+        }
+
+        lastNotifiedMonth = currentMonth;
+
+        MonthlyPromotionEvent event = new MonthlyPromotionEvent(today, currentMonth);
+        notifyObservers(event);
     }
 
-    public void stop() {
-        if (scheduler == null) return;
-        scheduler.shutdownNow();
-        scheduler = null;
-    }
-
-    public void tickNow() {
-        tick(LocalDate.now(clock));
-    }
-
-    public void tick(LocalDate today) {
-        if (today.getDayOfMonth() != 1) return;
-
-        YearMonth ym = YearMonth.from(today);
-        if (ym.equals(lastNotified)) return;
-        lastNotified = ym;
-
-        MonthlyPromotionEvent event = new MonthlyPromotionEvent(today, ym);
-        for (Observer<MonthlyPromotionEvent> o : observers) {
-            o.update(event);
+    /*
+     * Notifies every registered observer (TimerSystem does not decide what happens next).
+     * Observers can:
+     *  - write to DB (CRUD)
+     *  - update GUI
+     *  - create notifications, etc.
+     */
+    private void notifyObservers(MonthlyPromotionEvent event) {
+        for (int i = 0; i < observers.size(); i++) {
+            Observer obs = (Observer) observers.get(i);
+            obs.update(event);
         }
     }
 }
+

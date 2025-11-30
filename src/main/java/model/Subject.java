@@ -1,6 +1,10 @@
 package main.java.model;
 
-public interface Subject<E> {
-    void register(Observer<E> observer);
-    void unregister(Observer<E> observer);
+/*
+ * Subject interface
+ * The Subject manages a list of observers and notifies them when an event occurs.
+ */
+public interface Subject {
+    void register(Observer observer);
+    void unregister(Observer observer);
 }
