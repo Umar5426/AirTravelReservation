@@ -18,12 +18,10 @@ public class PaymentSystem {
     }
 }
 
-'''
-        // Using Credit Card
-        system.setPaymentStrategy(new CreditCardPayment("1234-5678-9012-3456", "Umar Khan"));
-        system.pay(100.0);
+// Using Credit Card
+//       system.setPaymentStrategy(new CreditCardPayment("1234-5678-9012-3456", "Umar Khan"));
+//     system.pay(100.0);
 
         // Using PayPal
-        system.setPaymentStrategy(new PayPalPayment("umar@example.com"));
-        system.pay(50.0);
-'''
+//       system.setPaymentStrategy(new PayPalPayment("umar@example.com"));
+//       system.pay(50.0);

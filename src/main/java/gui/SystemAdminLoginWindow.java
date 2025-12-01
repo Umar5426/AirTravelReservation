@@ -1,9 +1,9 @@
 package main.java.gui;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.FlowLayout;
 import javax.swing.*;
 
 public class SystemAdminLoginWindow extends JFrame {
@@ -54,7 +54,7 @@ public class SystemAdminLoginWindow extends JFrame {
         String pass = new String(passwordField.getPassword());
 
         
-        if (user.equals("Abdul Shakoor Raed") && pass.equals("Abdul4")) {
+        if (user.equals("Captain") && pass.equals("Abdul4")) {
             JOptionPane.showMessageDialog(this, "Login Successful!");
             new AdminWindow().setVisible(true);
             dispose();

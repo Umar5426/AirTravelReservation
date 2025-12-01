@@ -1,9 +1,8 @@
 package main.java.gui;
 
-import main.java.service.CustomerService;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import main.java.service.CustomerService;
 
 public class LoginWindow extends JFrame {
 
@@ -38,7 +37,7 @@ public class LoginWindow extends JFrame {
 
         add(formPanel, BorderLayout.CENTER);
 
-        // ===== Buttons =====
+        // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout());
 
         JButton loginBtn = new JButton("Login");
@@ -65,7 +64,18 @@ public class LoginWindow extends JFrame {
     // =============================
 
     private void attemptLogin(String username, String password) {
+        
         System.out.println("Attempting login: " + username);
+        // Check for admin logic
+
+        if (username.equals("Captain") && password.equals("Abdul4")) {
+            JOptionPane.showMessageDialog(this, "Admin Login Successful!");
+            new AdminWindow().setVisible(true);
+            dispose();
+            return;
+        }
+        
+        // Check for Customer login
 
         boolean authenticated = customerService.login(username, password);
 
@@ -75,6 +85,7 @@ public class LoginWindow extends JFrame {
             // Open Main Window in logged-in mode
             new MainWindow(false).setVisible(true);
             dispose();
+            return;
         } else {
             JOptionPane.showMessageDialog(this, "Invalid credentials.");
         }
