@@ -12,7 +12,8 @@ public class PayPalPayment implements PaymentStrategy {
     }
 
     @Override
-    public void pay(Customer cardHolder, double amount) {
+    public boolean pay(Customer cardHolder, double amount) {
         System.out.println(cardHolder.fname + "paid " + amount + " using PayPal account: " + email);
+        return true;
     }
 }
