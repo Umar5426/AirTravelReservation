@@ -1,209 +1,154 @@
 package main.java.dao;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import main.java.model.Customer;
+import java.sql.*;
+import java.text.SimpleDateFormat;
 
-public class CustomerDAO extends BaseDAO {
+public class CustomerDAO {
 
-    /**
-     * Inserts a new customer row.
-     */
-    public void addCustomer(String customerId,
-                            String firstName,
-                            String lastName,
-                            java.util.Date dob,
-                            String username,
-                            String password,
-                            String email,
-                            String phone) throws SQLException {
+    private static final String DB_URL = "jdbc:sqlite:flight_reservation.db";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-        String sql = "INSERT INTO customers " +
-                "(customer_id, fname, lname, dob, username, password, email, phone) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    // -----------------------------
+    // Add a new customer
+    // -----------------------------
+    public boolean addCustomer(String fname, String lname, java.util.Date dob, String username, String password) {
+        // Create a new Customer object first (ID is auto-assigned)
+        Customer newCustomer = new Customer(fname, lname, dob, username, password);
 
-        executeUpdate(sql, stmt -> {
-            stmt.setString(1, customerId);
-            stmt.setString(2, firstName);
-            stmt.setString(3, lastName);
-            if (dob != null) {
-                stmt.setDate(4, new Date(dob.getTime()));
-            } else {
-                stmt.setDate(4, null);
-            }
-            stmt.setString(5, username);
-            stmt.setString(6, password);
-            stmt.setString(7, email);
-            stmt.setString(8, phone);
-        });
-    }
+        String sql = "INSERT INTO Customer(customer_id, fname, lname, dob, username, password) VALUES(?, ?, ?, ?, ?, ?)";
 
-    /**
-     * Updates all editable columns for a customer.
-     */
-    public void updateCustomer(int id,
-                               String customerId,
-                               String firstName,
-                               String lastName,
-                               java.util.Date dob,
-                               String username,
-                               String password,
-                               String email,
-                               String phone) throws SQLException {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        String sql = "UPDATE customers " +
-                "SET customer_id=?, fname=?, lname=?, dob=?, username=?, password=?, email=?, phone=? " +
-                "WHERE id=?";
+            pstmt.setString(1, newCustomer.getCustomerID()); // use auto-assigned ID
+            pstmt.setString(2, newCustomer.getFname());
+            pstmt.setString(3, newCustomer.getLname());
+            pstmt.setString(4, DATE_FORMAT.format(newCustomer.getDob()));
+            pstmt.setString(5, newCustomer.getUsername());
+            pstmt.setString(6, newCustomer.getPassword());
 
-        executeUpdate(sql, stmt -> {
-            stmt.setString(1, customerId);
-            stmt.setString(2, firstName);
-            stmt.setString(3, lastName);
-            if (dob != null) {
-                stmt.setDate(4, new Date(dob.getTime()));
-            } else {
-                stmt.setDate(4, null);
-            }
-            stmt.setString(5, username);
-            stmt.setString(6, password);
-            stmt.setString(7, email);
-            stmt.setString(8, phone);
-            stmt.setInt(9, id);
-        });
-    }
+            pstmt.executeUpdate();
+            return true;
 
-    /**
-     * Deletes a customer by database id.
-     */
-    public void deleteCustomer(int id) throws SQLException {
-        String sql = "DELETE FROM customers WHERE id=?";
-        executeUpdate(sql, stmt -> stmt.setInt(1, id));
-    }
-
-    /**
-     * Returns all customers in a simple string form (temporary helper for GUI).
-     */
-    public List<String> getAllCustomers() throws SQLException {
-        String sql = "SELECT id, customer_id, fname, lname, email FROM customers ORDER BY id";
-        List<String> list = new ArrayList<>();
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(
-                    rs.getInt("id") + " - " +
-                    rs.getString("customer_id") + " | " +
-                    rs.getString("fname") + " " + rs.getString("lname") +
-                    " (" + (rs.getString("email") != null ? rs.getString("email") : "no email") + ")"
-                );
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return list;
     }
 
-    /**
-     * Returns all customers as domain objects.
-     */
-    public List<Customer> getCustomerRecords() throws SQLException {
-        String sql = "SELECT * FROM customers ORDER BY id";
-        List<Customer> customers = new ArrayList<>();
+    // -----------------------------
+    // Edit customer details
+    // -----------------------------
+    public boolean editCustomer(String customerID, String fname, String lname, java.util.Date dob, String password) {
+        String sql = "UPDATE Customer SET fname = ?, lname = ?, dob = ?, password = ? WHERE customer_id = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                customers.add(mapCustomer(rs));
-            }
+            pstmt.setString(1, fname);
+            pstmt.setString(2, lname);
+            pstmt.setString(3, DATE_FORMAT.format(dob));
+            pstmt.setString(4, password);
+            pstmt.setString(5, customerID);
+
+            int updated = pstmt.executeUpdate();
+            return updated > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return customers;
     }
 
-    /**
-     * Validates a customer's credentials against the database.
-     *
-     * @param username customer's username
-     * @param password customer's password (plain text for now)
-     * @return true if a matching customer exists, otherwise false
-     * @throws SQLException if the query fails
-     */
-    public Customer findByCredentials(String username, String password) throws SQLException {
-        String sql = "SELECT * FROM customers WHERE username = ? AND password = ?";
+    // -----------------------------
+    // View customer by username
+    // -----------------------------
+    public Customer viewCustomer(String username) {
+        String sql = "SELECT * FROM Customer WHERE username = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, username);
-            stmt.setString(2, password);
+            pstmt.setString(1, username);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapCustomer(rs);
+                    String fname = rs.getString("fname");
+                    String lname = rs.getString("lname");
+                    Date dob = rs.getDate("dob");
+                    String customerID = rs.getString("customer_id");
+                    String user = rs.getString("username");
+                    String pass = rs.getString("password");
+
+                    return new Customer(fname, lname, dob, customerID, user, pass);
                 }
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    /**
-     * Finds the database id for a given customer_id.
-     */
-    public int findCustomerIdByBusinessId(String customerId) throws SQLException {
-        String sql = "SELECT id FROM customers WHERE customer_id = ?";
+    // -----------------------------
+    // Fetch customer by ID
+    // -----------------------------
+    public Customer fetchById(String customerID) {
+        String sql = "SELECT * FROM Customer WHERE customer_id = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, customerId);
+            pstmt.setString(1, customerID);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("id");
+                    String fname = rs.getString("fname");
+                    String lname = rs.getString("lname");
+                    Date dob = rs.getDate("dob");
+                    String user = rs.getString("username");
+                    String pass = rs.getString("password");
+
+                    return new Customer(fname, lname, dob, customerID, user, pass);
                 }
             }
-        }
-        return -1;
-    }
-    public Customer findById(int id) throws SQLException {
-        String sql = "SELECT * FROM customers WHERE id = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapCustomer(rs);
-                }
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    private Customer mapCustomer(ResultSet rs) throws SQLException {
-        java.sql.Date dob = rs.getDate("dob");
-        java.util.Date dobUtil = dob != null ? new java.util.Date(dob.getTime()) : null;
+    // -----------------------------
+    // Login method
+    // -----------------------------
+    public Customer login(String username, String password) {
+        String sql = "SELECT * FROM Customer WHERE username = ? AND password = ?";
 
-        return new Customer(
-            rs.getInt("id"),
-            rs.getString("fname"),
-            rs.getString("lname"),
-            dobUtil,
-            rs.getString("customer_id"),
-            rs.getString("username"),
-            rs.getString("password"),
-            rs.getString("email"),
-            rs.getString("phone")
-        );
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String fname = rs.getString("fname");
+                    String lname = rs.getString("lname");
+                    Date dob = rs.getDate("dob");
+                    String customerID = rs.getString("customer_id");
+                    String user = rs.getString("username");
+                    String pass = rs.getString("password");
+
+                    return new Customer(fname, lname, dob, customerID, user, pass);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null; // no match found
     }
 }
- 
