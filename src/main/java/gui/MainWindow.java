@@ -2,34 +2,73 @@ package main.java.gui;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import main.java.model.Customer;
 import main.java.service.CustomerService;
+
+// Custom rounded button UI
+class RoundedButton extends JButton {
+    public RoundedButton(String text) {
+        super(text);
+        setFocusPainted(false);
+        setContentAreaFilled(false);
+        setBorder(new EmptyBorder(10, 20, 10, 20));
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Button background color
+        if (!isEnabled()) {
+            g2.setColor(new Color(0x0A1A2F)); // Dark navy when disabled
+        } else {
+            g2.setColor(getBackground());
+        }
+
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+
+        // Draw text
+        FontMetrics fm = g2.getFontMetrics();
+        Rectangle stringBounds = fm.getStringBounds(getText(), g2).getBounds();
+
+        int x = (getWidth() - stringBounds.width) / 2;
+        int y = (getHeight() - stringBounds.height) / 2 + fm.getAscent();
+
+        g2.setColor(getForeground());
+        g2.drawString(getText(), x, y);
+
+        g2.dispose();
+    }
+}
 
 public class MainWindow extends JFrame {
 
     private boolean isGuest;
     private Customer customer;
 
-    // Color Theme (same as LoginWindow)
+    // Color Theme
     private final Color SLATE = new Color(0x2E3B4E);
     private final Color ICE_WHITE = new Color(0xFFFFFF);
     private final Color NAVY = new Color(0x0A1A2F);
 
-    /** When user logs in */
+    // ============================================================
+    // Constructors
+    // ============================================================
     public MainWindow(Customer customer) {
         this.customer = customer;
         this.isGuest = (customer == null);
         initializeUI();
     }
 
-    /** Manual guest constructor */
     public MainWindow(boolean isGuest) {
         this.isGuest = isGuest;
         initializeUI();
     }
 
     // ============================================================
-    // MAIN WINDOW UI SETUP
+    // MAIN UI
     // ============================================================
     private void initializeUI() {
         setTitle("Flight Reservation System");
@@ -40,12 +79,10 @@ public class MainWindow extends JFrame {
 
         getContentPane().setBackground(SLATE);
 
-        // ============================================================
-        // TITLE BAR
-        // ============================================================
+        // Title
         JLabel titleLabel = new JLabel("Book Your Flight", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 26));
-        titleLabel.setForeground(NAVY);
+        titleLabel.setForeground(ICE_WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         add(titleLabel, BorderLayout.NORTH);
 
@@ -61,24 +98,23 @@ public class MainWindow extends JFrame {
         JButton historyBtn = styledButton("Booking History");
         JButton logoutBtn = styledButton("Logout");
 
-        menuPanel.add(searchBtn);
-        menuPanel.add(viewBtn);
-        menuPanel.add(historyBtn);
-        menuPanel.add(logoutBtn);
-
-        // Guest cannot view or see history
+        // Guest restrictions
         if (isGuest) {
             viewBtn.setEnabled(false);
             historyBtn.setEnabled(false);
         }
 
+        menuPanel.add(searchBtn);
+        menuPanel.add(viewBtn);
+        menuPanel.add(historyBtn);
+        menuPanel.add(logoutBtn);
+
         add(menuPanel, BorderLayout.WEST);
 
         // ============================================================
-        // CENTER SEARCH PANEL (Expedia style)
+        // CENTER SEARCH PANEL
         // ============================================================
-        JPanel searchPanel = new JPanel();
-        searchPanel.setLayout(new GridBagLayout());
+        JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         searchPanel.setBackground(SLATE);
 
@@ -120,14 +156,15 @@ public class MainWindow extends JFrame {
         add(searchPanel, BorderLayout.CENTER);
 
         // ============================================================
-        // EVENT LISTENERS
+        // ACTION LISTENERS
         // ============================================================
-
         searchBtn.addActionListener(e -> bigSearchButton.doClick());
 
         bigSearchButton.addActionListener(e -> {
             String from = fromField.getText().trim();
             String to = toField.getText().trim();
+            String depDate = departDateField.getText().trim();
+            String retDate = returnDateField.getText().trim();
 
             if (from.isEmpty() || to.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
@@ -137,10 +174,12 @@ public class MainWindow extends JFrame {
                 return;
             }
 
-            FlightSearchWindow fsw = new FlightSearchWindow(isGuest);
+            // Pass all four values to next window
+            FlightSearchWindow fsw = new FlightSearchWindow(from, to, depDate, retDate, customer);
             fsw.setVisible(true);
             dispose();
         });
+
 
         viewBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Viewing flight...");
@@ -161,11 +200,10 @@ public class MainWindow extends JFrame {
     // ============================================================
 
     private JButton styledButton(String text) {
-        JButton btn = new JButton(text);
+        RoundedButton btn = new RoundedButton(text);
         btn.setBackground(SLATE);
-        btn.setForeground(ICE_WHITE);
+        btn.setForeground(ICE_WHITE); // SLATE theme letters
         btn.setFont(new Font("Arial", Font.BOLD, 14));
-        btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createLineBorder(ICE_WHITE, 2));
         return btn;
     }
@@ -181,7 +219,7 @@ public class MainWindow extends JFrame {
 
     private JLabel styledLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setForeground(NAVY);
+        label.setForeground(ICE_WHITE);
         label.setFont(new Font("Arial", Font.PLAIN, 16));
         return label;
     }
