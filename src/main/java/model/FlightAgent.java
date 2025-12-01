@@ -1,6 +1,7 @@
 package main.java.model;
 
 import java.util.Date;
+import main.java.dao.CustomerDAO;
 
 public class FlightAgent extends Customer {
     private String authorizedKey;
@@ -10,9 +11,17 @@ public class FlightAgent extends Customer {
         this.authorizedKey = authorizedKey;
     }
 
-    public void addCustomer(){};
+    public void addCustomer(String fname, String lname, Date dob, String customerID,
+                    String username, String password){
 
-    public void viewCustomer(){};
+        CustomerDAO addCustomer(fname, lname, dob, customerID, username, password);
+
+
+    };
+
+    public Customer viewCustomer(String customerID){
+        Customer c.findbyId(customerID);
+    };
 
     public void editCustomer(){};
 
