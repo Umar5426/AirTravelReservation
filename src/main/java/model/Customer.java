@@ -3,7 +3,7 @@ package main.java.model;
 import java.util.Date;
 
 public class Customer {
-    private String fname;
+    public String fname;
     private String lname;
     private Date dob;
     private String customerID;
