@@ -1,203 +1,167 @@
 package main.java.dao;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import main.java.model.Flight;
+import main.java.model.AreaCode;
+
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import main.java.model.AreaCode;
-import main.java.model.Flight;
+public class FlightDAO {
 
-public class FlightDAO extends BaseDAO {
+    private static final String DB_URL = "jdbc:sqlite:flight_reservation.db";
 
-    public void addFlight(String flightId,
-                          String flightCode,
-                          String airline,
-                          java.util.Date flightDate,
-                          String flightDuration,
-                          String departureAreaCode,
-                          String arrivalAreaCode,
-                          int capacity,
-                          double price) throws SQLException {
+    // -----------------------------
+    // Add a new flight
+    // -----------------------------
+    public boolean addFlight(String flightCode, String airLine, Date flightDate,
+                             String flightDuration, double price, AreaCode departureAreaCode,
+                             AreaCode arrivalAreaCode) {
 
-        String sql = "INSERT INTO flights (flight_id, flight_code, airline, flight_date, flight_duration, " +
-                     "departure_area_code, arrival_area_code, capacity, price) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Flight(flightID, flight_code, airline, flight_date, duration, price, departure_area, arrival_area) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        executeUpdate(sql, stmt -> {
-            stmt.setString(1, flightId);
-            stmt.setString(2, flightCode);
-            stmt.setString(3, airline);
-            if (flightDate != null) {
-                stmt.setDate(4, new Date(flightDate.getTime()));
-            } else {
-                stmt.setDate(4, null);
-            }
-            stmt.setString(5, flightDuration);
-            stmt.setString(6, departureAreaCode);
-            stmt.setString(7, arrivalAreaCode);
-            stmt.setInt(8, capacity);
-            stmt.setDouble(9, price);
-        });
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            Flight flight = new Flight(flightCode, airLine, flightDate, flightDuration,
+                                       departureAreaCode, arrivalAreaCode, price);
+
+            pstmt.setString(1, flight.getFlightID());
+            pstmt.setString(2, flight.getFlightCode());
+            pstmt.setString(3, flight.getAirLine());
+            pstmt.setDate(4, new java.sql.Date(flight.getFlightDate().getTime()));
+            pstmt.setString(5, flight.getFlightDuration());
+            pstmt.setDouble(6, flight.getPrice());
+            pstmt.setString(7, flight.getDepartureAreaCode().name());
+            pstmt.setString(8, flight.getArrivalAreaCode().name());
+
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public void updateFlight(int id,
-                             String flightId,
-                             String flightCode,
-                             String airline,
-                             java.util.Date flightDate,
-                             String flightDuration,
-                             String departureAreaCode,
-                             String arrivalAreaCode,
-                             int capacity,
-                             double price) throws SQLException {
+    // -----------------------------
+    // Remove flight by flightID
+    // -----------------------------
+    public boolean removeFlight(String flightID) {
+        String sql = "DELETE FROM Flight WHERE flightID = ?";
 
-        String sql = "UPDATE flights SET flight_id=?, flight_code=?, airline=?, flight_date=?, flight_duration=?, " +
-                     "departure_area_code=?, arrival_area_code=?, capacity=?, price=? WHERE id=?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        executeUpdate(sql, stmt -> {
-            stmt.setString(1, flightId);
-            stmt.setString(2, flightCode);
-            stmt.setString(3, airline);
-            if (flightDate != null) {
-                stmt.setDate(4, new Date(flightDate.getTime()));
-            } else {
-                stmt.setDate(4, null);
-            }
-            stmt.setString(5, flightDuration);
-            stmt.setString(6, departureAreaCode);
-            stmt.setString(7, arrivalAreaCode);
-            stmt.setInt(8, capacity);
-            stmt.setDouble(9, price);
-            stmt.setInt(10, id);
-        });
+            pstmt.setString(1, flightID);
+            return pstmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public void deleteFlight(int id) throws SQLException {
-        String sql = "DELETE FROM flights WHERE id=?";
-        executeUpdate(sql, stmt -> stmt.setInt(1, id));
+    // -----------------------------
+    // Update flight details
+    // -----------------------------
+    public boolean updateFlight(String flightID, String flightCode, String airLine, Date flightDate,
+                                String flightDuration, double price, AreaCode departureAreaCode,
+                                AreaCode arrivalAreaCode) {
+
+        String sql = "UPDATE Flight SET flight_code=?, airline=?, flight_date=?, duration=?, price=?, departure_area=?, arrival_area=? " +
+                     "WHERE flightID=?";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, flightCode);
+            pstmt.setString(2, airLine);
+            pstmt.setDate(3, new java.sql.Date(flightDate.getTime()));
+            pstmt.setString(4, flightDuration);
+            pstmt.setDouble(5, price);
+            pstmt.setString(6, departureAreaCode.name());
+            pstmt.setString(7, arrivalAreaCode.name());
+            pstmt.setString(8, flightID);
+
+            return pstmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public List<String> searchFlights(String departureAreaCode, String arrivalAreaCode) throws SQLException {
-        String sql = "SELECT * FROM flights WHERE departure_area_code=? AND arrival_area_code=?";
-        List<String> flights = new ArrayList<>();
+    // -----------------------------
+    // Search flights
+    // -----------------------------
+    public List<Flight> searchFlights(AreaCode from, AreaCode to, Date departDate, Date returnDate) {
+        String sql = "SELECT * FROM Flight WHERE departure_area = ? AND arrival_area = ? AND flight_date BETWEEN ? AND ?";
+        List<Flight> flights = new ArrayList<>();
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, departureAreaCode);
-            stmt.setString(2, arrivalAreaCode);
+            pstmt.setString(1, from.name());
+            pstmt.setString(2, to.name());
+            pstmt.setDate(3, new java.sql.Date(departDate.getTime()));
+            pstmt.setDate(4, new java.sql.Date(returnDate.getTime()));
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    flights.add(
-                        rs.getInt("id") + " - " +
-                        rs.getString("flight_id") + " (" + rs.getString("flight_code") + ") | " +
-                        rs.getString("departure_area_code") + " -> " +
-                        rs.getString("arrival_area_code") + " | $" +
-                        rs.getDouble("price")
+                    Flight flight = new Flight(
+                            rs.getString("flightID"),
+                            rs.getString("flight_code"),
+                            rs.getString("airline"),
+                            rs.getDate("flight_date"),
+                            rs.getString("duration"),
+                            AreaCode.valueOf(rs.getString("departure_area")),
+                            AreaCode.valueOf(rs.getString("arrival_area")),
+                            rs.getDouble("price")
+                    );
+                    flights.add(flight);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return flights;
+    }
+
+    // -----------------------------
+    // Fetch flight by flightID
+    // -----------------------------
+    public Flight fetchFlightByID(String flightID) {
+        String sql = "SELECT * FROM Flight WHERE flightID = ?";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, flightID);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Flight(
+                            rs.getString("flightID"),
+                            rs.getString("flight_code"),
+                            rs.getString("airline"),
+                            rs.getDate("flight_date"),
+                            rs.getString("duration"),
+                            AreaCode.valueOf(rs.getString("departure_area")),
+                            AreaCode.valueOf(rs.getString("arrival_area")),
+                            rs.getDouble("price")
                     );
                 }
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return flights;
-    }
 
-    public int findFlightDbIdByBusinessId(String flightId) throws SQLException {
-        String sql = "SELECT id FROM flights WHERE flight_id = ?";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, flightId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id");
-                }
-            }
-        }
-        return -1;
-    }
-
-    public List<Flight> getAllFlights() throws SQLException {
-        String sql = "SELECT * FROM flights ORDER BY flight_date";
-        List<Flight> flights = new ArrayList<>();
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                flights.add(mapFlight(rs));
-            }
-        }
-        return flights;
-    }
-
-    public Flight findById(int id) throws SQLException {
-        String sql = "SELECT * FROM flights WHERE id = ?";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapFlight(rs);
-                }
-            }
-        }
         return null;
-    }
-
-    public Flight findByFlightId(String flightId) throws SQLException {
-        String sql = "SELECT * FROM flights WHERE flight_id = ?";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, flightId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapFlight(rs);
-                }
-            }
-        }
-        return null;
-    }
-
-    private Flight mapFlight(ResultSet rs) throws SQLException {
-        java.sql.Date flightDate = rs.getDate("flight_date");
-        AreaCode departure = parseAreaCode(rs.getString("departure_area_code"));
-        AreaCode arrival = parseAreaCode(rs.getString("arrival_area_code"));
-
-        Flight flight = new Flight(
-            rs.getString("flight_id"),
-            rs.getString("flight_code"),
-            rs.getString("airline"),
-            flightDate != null ? new java.util.Date(flightDate.getTime()) : null,
-            rs.getString("flight_duration"),
-            departure,
-            arrival
-        );
-        flight.setId(rs.getInt("id"));
-        flight.setCapacity(rs.getInt("capacity"));
-        flight.setPrice(rs.getDouble("price"));
-        return flight;
-    }
-
-    private AreaCode parseAreaCode(String code) {
-        if (code == null) return null;
-        try {
-            return AreaCode.valueOf(code);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 }
