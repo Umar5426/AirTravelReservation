@@ -3,18 +3,27 @@ package main.java.model;
 import java.util.Date;
 
 public class Flight {
-    public String flightID;
-    public String flightCode;
-    public String airLine;
-    public Date flightDate;
-    public String flightDuration;
-    public AreaCode departureAreaCode;
-    public AreaCode arrivalAreaCode;
+    private int id;
+    private String flightID;
+    private String flightCode;
+    private String airLine;
+    private Date flightDate;
+    private String flightDuration;
+    private AreaCode departureAreaCode;
+    private AreaCode arrivalAreaCode;
+    private int capacity;
+    private double price;
 
     // Constructors
     public Flight() {}
 
-    public Flight(String flightID, String flightCode, String airline, Date flightDate, String flightDuration, AreaCode departureAreaCode, AreaCode arrivalAreaCode) {
+    public Flight(String flightID,
+                  String flightCode,
+                  String airline,
+                  Date flightDate,
+                  String flightDuration,
+                  AreaCode departureAreaCode,
+                  AreaCode arrivalAreaCode) {
         this.flightID = flightID;
         this.flightCode = flightCode;
         this.airLine = airline;
@@ -24,7 +33,7 @@ public class Flight {
         this.arrivalAreaCode = arrivalAreaCode;
     }
 
-    // Getters
+    public int getId() { return id; }
     public String getFlightID(){
         return flightID;
     }
@@ -53,7 +62,11 @@ public class Flight {
         return arrivalAreaCode;
     }
 
+    public int getCapacity() { return capacity; }
+    public double getPrice() { return price; }
+
     // Setters
+    public void setId(int id) { this.id = id; }
     public void setFlightID(String flightID) {
         this.flightID = flightID;
     }
@@ -82,7 +95,6 @@ public class Flight {
         this.arrivalAreaCode = arrivalAreaCode;
     }
 
-    
-
-
+    public void setCapacity(int capacity) { this.capacity = capacity; }
+    public void setPrice(double price) { this.price = price; }
 }

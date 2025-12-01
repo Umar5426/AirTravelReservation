@@ -1,9 +1,9 @@
 package main.java.service;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.java.dao.AuthorizationDAO;
 import main.java.dao.FlightDAO;
 import main.java.model.Customer;
 import main.java.model.Flight;
@@ -17,6 +17,7 @@ public class CustomerService {
     private Customer loggedInCustomer;
 
     // Inject DAO
+    private AuthorizationDAO authDAO = new AuthorizationDAO();
     private FlightDAO flightDAO = new FlightDAO();
 
     // ---------------------
@@ -24,11 +25,15 @@ public class CustomerService {
     // ---------------------
 
     public boolean login(String username, String password) {
-        for (Customer c : customers) {
-            if (c.getUsername().equals(username) && c.getPassword().equals(password)) {
-                loggedInCustomer = c;
+        try {
+            String role = authDAO.login(username, password);
+            if (role != null) {
+                // Minimal customer stub; user records are in the users table in this schema.
+                loggedInCustomer = new Customer(-1, username, "", null, username, username, password, null, null);
                 return true;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
