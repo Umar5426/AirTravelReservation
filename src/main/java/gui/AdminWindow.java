@@ -22,7 +22,7 @@ public class AdminWindow extends JFrame {
         center.setBorder(BorderFactory.createEmptyBorder(30, 80, 30, 80));
 
         JButton manageFlightsBtn = new JButton("Manage Flights");
-        JButton viewSystemBtn = new JButton("Manage Flight");
+        JButton viewSystemBtn = new JButton("View System");
         JButton logoutBtn = new JButton("Logout");
 
         center.add(manageFlightsBtn);
