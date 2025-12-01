@@ -3,15 +3,16 @@ package main.java.gui;
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
+
 import main.java.model.Reservation;
-import main.java.service.CustomerService;
+import main.java.service.BookingService;
 
 public class BookingHistoryWindow extends JFrame {
 
-    private CustomerService customerService;
+    private BookingService bookingService;  // use BookingService for all reservation actions
 
-    public BookingHistoryWindow(CustomerService customerService) {
-        this.customerService = customerService;
+    public BookingHistoryWindow(BookingService bookingService) {
+        this.bookingService = bookingService;
 
         setTitle("Your Booking History");
         setSize(650, 600);
@@ -29,9 +30,9 @@ public class BookingHistoryWindow extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         // ===== FETCH RESERVATIONS =====
-        List<Reservation> reservations = customerService.viewBookingHistory();
+        List<Reservation> reservations = bookingService.viewBookingHistory();
 
-        if (reservations.isEmpty()) {
+        if (reservations == null || reservations.isEmpty()) {
             JLabel emptyLabel = new JLabel("No reservations found.", SwingConstants.CENTER);
             emptyLabel.setFont(new Font("Arial", Font.PLAIN, 18));
             add(emptyLabel, BorderLayout.CENTER);
@@ -57,7 +58,6 @@ public class BookingHistoryWindow extends JFrame {
 
         JPanel bottom = new JPanel();
         bottom.add(backBtn);
-
         add(bottom, BorderLayout.SOUTH);
     }
 
@@ -81,8 +81,8 @@ public class BookingHistoryWindow extends JFrame {
         info.add(new JLabel("Reservation ID: " + r.getReservationID()));
         info.add(new JLabel("Flight: " + r.getFlight().getFlightCode()));
         info.add(new JLabel("Route: " + r.getFlight().getDepartureAreaCode() + " → " + r.getFlight().getArrivalAreaCode()));
-        info.add(new JLabel("Date: " + r.getDateBooked()));
-        info.add(new JLabel("Price: (N/A)"));
+        info.add(new JLabel("Date Booked: " + r.getDateBooked()));
+        info.add(new JLabel("Price: " + r.getTotalPrice()));
 
         card.add(info, BorderLayout.CENTER);
 
@@ -107,9 +107,26 @@ public class BookingHistoryWindow extends JFrame {
     // =====================================================================
     // SERVICE CALLS
     // =====================================================================
+
     private void editReservation(Reservation r) {
-        JOptionPane.showMessageDialog(this,
-                "Editing reservation " + r.getReservationID() + "… (open edit window here)");
+        String newFlightCode = JOptionPane.showInputDialog(
+                this,
+                "Enter new flight id for reservation " + r.getReservationID() + ":",
+                r.getFlight().getFlightCode()
+        );
+
+        if (newFlightCode != null && !newFlightCode.isEmpty()) {
+            boolean success = bookingService.modifyReservation(r.getReservationID(), newFlightCode);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this,
+                        "Reservation " + r.getReservationID() + " updated successfully!");
+                refreshWindow();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to update reservation. Check flight code or connection.");
+            }
+        }
     }
 
     private void cancelReservation(Reservation r) {
@@ -121,12 +138,23 @@ public class BookingHistoryWindow extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            customerService.cancelReservation(r.getReservationID());
-            JOptionPane.showMessageDialog(this, "Reservation cancelled.");
+            boolean success = bookingService.cancelReservation(r.getReservationID());
 
-            // Refresh page
-            new BookingHistoryWindow(customerService).setVisible(true);
-            dispose();
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Reservation " + r.getReservationID() + " cancelled.");
+                refreshWindow();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to cancel reservation. Please try again.");
+            }
         }
+    }
+
+    // =====================================================================
+    // HELPER: Refresh window after edit/cancel
+    // =====================================================================
+    private void refreshWindow() {
+        BookingHistoryWindow newWindow = new BookingHistoryWindow(bookingService);
+        newWindow.setVisible(true);
+        dispose();
     }
 }

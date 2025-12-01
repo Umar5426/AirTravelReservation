@@ -157,13 +157,13 @@ public class BookingPanel extends JFrame {
 
             payment.setPaymentStrategy(new CreditCardPayment(ccNumberField.getText(), customer));
 
-            success = payment.pay(customer, 500);
+            success = payment.pay(customer, flight.getPrice());
 
         } else {
 
             payment.setPaymentStrategy(new PayPalPayment(customer, paypalEmailField.getText()));
 
-            success = payment.pay(customer, 500);
+            success = payment.pay(customer, flight.getPrice());
         }
 
         if (!success) {
@@ -172,7 +172,7 @@ public class BookingPanel extends JFrame {
         }
 
         // ===== If payment succeeded =====
-        Reservation reservation = bookingService.makeReservation(customer, flight);
+        Reservation reservation = bookingService.makeReservation(flight, flight.getPrice());
 
         if (reservation == null) {
             JOptionPane.showMessageDialog(this, "Reservation failed, please try later.");
