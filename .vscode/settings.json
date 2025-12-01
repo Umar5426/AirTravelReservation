@@ -3,6 +3,7 @@
         "src"
     ],
     "java.project.referencedLibraries": [
+        "lib/sqlite-jdbc.jar",
         "lib/mysql-connector-j-9.5.0.jar",
         "/Users/lidmarka/Developer/AirTravelReservation/lib/mysql-connector-j-9.5.0.jar"
     ]

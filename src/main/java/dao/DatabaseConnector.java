@@ -10,11 +10,13 @@ public class DatabaseConnector {
     public static Connection connect() {
         Connection conn = null;
         try {
+            Class.forName("org.sqlite.JDBC");  // IMPORTANT
             conn = DriverManager.getConnection(DB_URL);
             System.out.println("Connection to SQLite has been established.");
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
         return conn;
     }
+
 }
