@@ -1,9 +1,8 @@
 package main.java.gui;
 
-import main.java.service.CustomerService;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import main.java.service.CustomerService;
 
 public class MainWindow extends JFrame {
 
@@ -71,6 +70,12 @@ public class MainWindow extends JFrame {
         JTextField toField = new JTextField();
         JTextField departDateField = new JTextField();
         JTextField returnDateField = new JTextField();
+        
+        
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0; // allows the row to expand properly
+        gbc.ipadx = 120; // this widens the input boxes
 
         JLabel fromLabel = new JLabel("From (Area Code):");
         JLabel toLabel = new JLabel("To (Area Code):");
@@ -127,11 +132,10 @@ public class MainWindow extends JFrame {
         });
 
         viewBtn.addActionListener(e -> {
-            customerService.viewFlight();
             JOptionPane.showMessageDialog(this, "Viewing flight...");
         });
 
-        historyBtn.addActionListener(e -> new BookingHistoryWindow().setVisible(true));
+        historyBtn.addActionListener(e -> new BookingHistoryWindow(customerService).setVisible(true));
 
         logoutBtn.addActionListener(e -> {
             new LoginWindow().setVisible(true);

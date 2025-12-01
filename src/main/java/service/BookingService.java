@@ -1,12 +1,10 @@
 package main.java.service;
 
-import main.java.model.Reservation;
-import main.java.model.Customer;
-import main.java.model.Flight;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
+import java.util.List;
+import main.java.model.Customer;
+import main.java.model.Reservation;
 
 
 public class BookingService {
@@ -21,7 +19,7 @@ public class BookingService {
     public void makeReservation(Reservation reservation) {
         reservations.add(reservation);
         System.out.println("BookingService: Reservation created for flight " 
-                           + reservation.flight.flightCode);
+                           + reservation.getFlight().getFlightCode());
     }
 
     
@@ -50,7 +48,7 @@ public class BookingService {
         List<Reservation> result = new ArrayList<>();
 
         for (Reservation r : reservations) {
-            if (r.customer.equals(customer)) {
+            if (r.getCustomer().getCustomerID().equals(customer.getCustomerID())) {
                 result.add(r);
             }
         }
@@ -62,9 +60,9 @@ public class BookingService {
     // Generates Booking Confirmation here
     public String generateBookingConfirmation(Reservation reservation) {
         return "Booking Confirmation:\n" +
-               "Customer: " + reservation.customer.fname + " " + reservation.customer.lname + "\n" +
-               "Flight: " + reservation.flight.flightCode + "\n" +
-               "Date Booked: " + reservation.dateBooked;
+               "Customer: " + reservation.getCustomer().getFname() + " " + reservation.getCustomer().getLname() + "\n" +
+               "Flight: " + reservation.getFlight().getFlightCode() + "\n" +
+               "Date Booked: " + reservation.getDateBooked();
     }
     
 }
