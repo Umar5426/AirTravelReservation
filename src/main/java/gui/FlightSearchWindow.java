@@ -1,105 +1,170 @@
 package main.java.gui;
 
+import main.java.model.Customer;
 import main.java.model.Flight;
 import main.java.service.CustomerService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class FlightSearchWindow extends JFrame {
 
-    private JTextField fromField;
-    private JTextField toField;
-    private JTextField dateField;
+    private final String from;
+    private final String to;
+    private final String departDate;
+    private final String returnDate;
+    private final Customer customer;
+    private final boolean isGuest;
 
     private CustomerService customerService;
-    private boolean isGuest;
 
-    public FlightSearchWindow(boolean isGuest) {
+    // ========= COLOR THEME =========
+    private final Color SLATE = new Color(0x2E3B4E);
+    private final Color ICE_WHITE = new Color(0xFFFFFF);
+    private final Color NAVY = new Color(0x0A1A2F);
+
+    public FlightSearchWindow(String from, String to, String departDate, String returnDate, Customer customer) {
+        this.from = from;
+        this.to = to;
+        this.departDate = departDate;
+        this.returnDate = returnDate;
+        this.customer = customer;
+        this.isGuest = (customer == null);
+
         this.customerService = new CustomerService();
-        this.isGuest = isGuest;
 
-        setTitle("Search Flights");
-        setSize(500, 350);
+        initializeUI();
+        loadFlightResults();
+    }
+
+    private void initializeUI() {
+        setTitle("Available Flights");
+        setSize(600, 500);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // =======================
-        // Title
-        // =======================
-        JLabel title = new JLabel("Search Available Flights", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 20));
+        getContentPane().setBackground(SLATE);
+
+        // ===== TITLE =====
+        JLabel title = new JLabel("Available Flights", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(ICE_WHITE);
+        title.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
         add(title, BorderLayout.NORTH);
 
-        // =======================
-        // Search Form
-        // =======================
-        JPanel form = new JPanel(new GridLayout(3, 2, 10, 10));
-        form.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        // ===== RESULTS PANEL =====
+        flightsPanel = new JPanel();
+        flightsPanel.setLayout(new BoxLayout(flightsPanel, BoxLayout.Y_AXIS));
+        flightsPanel.setBackground(SLATE);
 
-        form.add(new JLabel("From (Area Code):"));
-        fromField = new JTextField();
-        form.add(fromField);
+        scrollPane = new JScrollPane(flightsPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(SLATE);
+        add(scrollPane, BorderLayout.CENTER);
 
-        form.add(new JLabel("To (Area Code):"));
-        toField = new JTextField();
-        form.add(toField);
+        // ===== BACK BUTTON =====
+        JButton backBtn = styledButton("Back");
+        backBtn.addActionListener(e -> {
+            new MainWindow(customer).setVisible(true);
+            dispose();
+        });
 
-        form.add(new JLabel("Date (YYYY-MM-DD):"));
-        dateField = new JTextField();
-        form.add(dateField);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(SLATE);
+        bottomPanel.add(backBtn);
 
-        add(form, BorderLayout.CENTER);
+        add(bottomPanel, BorderLayout.SOUTH);
 
-        // =======================
-        // Buttons
-        // =======================
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-
-        JButton searchBtn = new JButton("Search");
-        JButton backBtn = new JButton("Back");
-
-        buttonPanel.add(searchBtn);
-        buttonPanel.add(backBtn);
-
-        add(buttonPanel, BorderLayout.SOUTH);
-
-        // =======================
-        // Action Listeners
-        // =======================
-        searchBtn.addActionListener(e -> searchFlights());
-        backBtn.addActionListener(e -> goBack());
-
-        // =======================
-        // X Button Behavior
-        // =======================
+        // Prevent exiting without going back
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                goBack();
+                new MainWindow(customer).setVisible(true);
+                dispose();
             }
         });
     }
 
-    private void searchFlights() {
-        // Placeholder: Connect to your upcoming real search logic
-        String from = fromField.getText();
-        String to = toField.getText();
-        String date = dateField.getText();
+    private JPanel flightsPanel;
+    private JScrollPane scrollPane;
 
-        JOptionPane.showMessageDialog(this,
-                "Searching flights...\nFrom: " + from +
-                "\nTo: " + to +
-                "\nDate: " + date);
+    // =====================================================
+    // LOAD FLIGHT RESULTS
+    // =====================================================
+    private void loadFlightResults() {
 
-        // You can replace this with: List<Flight> flights = customerService.searchFlights(...)
+        flightsPanel.removeAll();
 
-        // After searching, you may want another window like "FlightResultsWindow"
+        // TODO: Replace this with your actual searchFlights in DAO
+        List<Flight> flights = customerService.searchFlights(from, to, departDate);
+
+        if (flights == null || flights.isEmpty()) {
+            JLabel emptyLabel = new JLabel("No flights found.", SwingConstants.CENTER);
+            emptyLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            emptyLabel.setForeground(ICE_WHITE);
+            flightsPanel.add(emptyLabel);
+            revalidate();
+            return;
+        }
+
+        for (Flight flight : flights) {
+            flightsPanel.add(createFlightCard(flight));
+            flightsPanel.add(Box.createVerticalStrut(10));
+        }
+
+        revalidate();
     }
 
-    private void goBack() {
-        new MainWindow(isGuest).setVisible(true);
-        dispose();
+    // =====================================================
+    // CREATE INDIVIDUAL FLIGHT CARD
+    // =====================================================
+    private JPanel createFlightCard(Flight flight) {
+
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(NAVY);
+        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        // Flight info
+        JLabel info = new JLabel(
+                "<html><b>Airline:</b> " + flight.getAirLine() +
+                "<br><b>Date:</b> " + flight.getFlightDate() +
+                "<br><b>Price: $500 </b> </html>"
+        );
+        info.setForeground(ICE_WHITE);
+        info.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        card.add(info, BorderLayout.CENTER);
+
+        // Select button
+        JButton selectBtn = styledButton("Select");
+        selectBtn.addActionListener(e -> {
+            new FlightManagementPanel(customer, flight);
+            dispose();
+        });
+
+        JPanel rightPanel = new JPanel();
+        rightPanel.setBackground(NAVY);
+        rightPanel.add(selectBtn);
+
+        card.add(rightPanel, BorderLayout.EAST);
+
+        return card;
+    }
+
+    // =====================================================
+    // REUSABLE STYLED BUTTON
+    // =====================================================
+    private JButton styledButton(String text) {
+        JButton b = new JButton(text);
+        b.setBackground(SLATE);
+        b.setForeground(ICE_WHITE);
+        b.setFont(new Font("Arial", Font.BOLD, 14));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createLineBorder(ICE_WHITE, 2));
+        b.setPreferredSize(new Dimension(120, 35));
+        return b;
     }
 }

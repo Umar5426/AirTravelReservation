@@ -7,14 +7,14 @@ import java.awt.Font;
 import java.awt.GridLayout;
 
 import main.java.model.Flight;
-import main.java.service.CustomerService;
+import main.java.model.Customer;
 
 public class FlightManagementPanel extends JFrame {
-    private CustomerService customerService;
+    private Customer customer;
     private Flight flight;
 
-    public FlightManagementPanel(CustomerService customerService, Flight flight) {
-        this.customerService = customerService;
+    public FlightManagementPanel(Customer customer, Flight flight) {
+        this.customer = customer;
         this.flight = flight;
 
         setTitle("Flight Details");
@@ -38,7 +38,7 @@ public class FlightManagementPanel extends JFrame {
         info.add(new JLabel("Duration: " + flight.getFlightDuration()));
         info.add(new JLabel("From: " + flight.getDepartureAreaCode()));
         info.add(new JLabel("To: " + flight.getArrivalAreaCode()));
-        info.add(new JLabel("Price: $" + "350")); // placeholder price
+        info.add(new JLabel("Price: $" + "500"));
 
         add(info, BorderLayout.CENTER);
 
@@ -49,7 +49,7 @@ public class FlightManagementPanel extends JFrame {
         JButton backBtn = new JButton("Back");
 
         bookBtn.addActionListener(e -> {
-            new BookingPanel(customerService, flight).setVisible(true);
+            new BookingPanel(customer, flight).setVisible(true);
             dispose();
         });
 

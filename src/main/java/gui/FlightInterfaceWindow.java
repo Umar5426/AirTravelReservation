@@ -10,6 +10,7 @@ public class FlightInterfaceWindow extends JFrame{
     private JTextField flightCodeField;
     private JTextField originField;
     private JTextField destinationField;
+    private JTextField flightDurationField;
 
     public FlightInterfaceWindow() {
         setTitle("Flight Management");
@@ -68,7 +69,9 @@ public class FlightInterfaceWindow extends JFrame{
                 "Flight " + action + ":\n" +
                 "Code: " + flightCodeField.getText() + "\n" +
                 "From: " + originField.getText() + "\n" +
-                "To: " + destinationField.getText());
+                "To: " + destinationField.getText() + "\n" + 
+                "Duration: " + flightDurationField.getText()
+                );
     }
 
     
