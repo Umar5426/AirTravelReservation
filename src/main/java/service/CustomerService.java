@@ -1,119 +1,63 @@
 package main.java.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import main.java.dao.AuthorizationDAO;
-import main.java.dao.FlightDAO;
+import main.java.dao.CustomerDAO;
 import main.java.model.Customer;
-import main.java.model.Flight;
-import main.java.model.Reservation;
+
+import java.util.Date;
 
 public class CustomerService {
 
-    private List<Customer> customers = new ArrayList<>();
-    private List<Reservation> reservations = new ArrayList<>();
+    private CustomerDAO customerDAO;
 
     private Customer loggedInCustomer;
 
-    // Inject DAO
-    private AuthorizationDAO authDAO = new AuthorizationDAO();
-    private FlightDAO flightDAO = new FlightDAO();
+    public CustomerService() {
+        this.customerDAO = new CustomerDAO();
+    }
 
     // ---------------------
     // Authentication
     // ---------------------
 
-    public boolean login(String username, String password) {
-        try {
-            String role = authDAO.login(username, password);
-            if (role != null) {
-                // Minimal customer stub; user records are in the users table in this schema.
-                loggedInCustomer = new Customer(-1, username, "", null, username, username, password, null, null);
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    /**
+     * Attempt to login a customer using username and password.
+     * If successful, sets loggedInCustomer and returns the object.
+     * Returns null if login fails.
+     */
+    public Customer login(String username, String password) {
+        Customer customer = customerDAO.login(username, password);
+        if (customer != null) {
+            loggedInCustomer = customer;
+            return customer;
         }
-        return false;
+        return null;
     }
 
     public void logout() {
         loggedInCustomer = null;
     }
 
-    // ---------------------
-    // Flight Searching (Using DAO)
-    // ---------------------
-
-    public List<String> searchFlights(String departure, String destination) {
-        try {
-            return flightDAO.searchFlights(departure, destination);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
+    public Customer getLoggedInCustomer() {
+        return loggedInCustomer;
     }
 
     // ---------------------
-    // Flight Details
+    // Customer CRUD
     // ---------------------
 
-    // If needed, you can implement viewFlight() using DAO later
-    public Flight viewFlight(String flightCode) {
-        return null;  // Placeholder until we add DAO method getFlightByNumber()
+    public boolean addCustomer(String fname, String lname, Date dob, String username, String password) {
+        return customerDAO.addCustomer(fname, lname, dob, username, password);
     }
 
-    // ---------------------
-    // Reservation Handling
-    // ---------------------
-
-    public Reservation makeReservation(String flightCode) {
-        if (loggedInCustomer == null) return null;
-
-        // Once viewFlight() is DAO-powered, this will work
-        Flight flight = viewFlight(flightCode);
-        if (flight == null) return null;
-
-        Reservation newRes = new Reservation(loggedInCustomer, flight);
-        reservations.add(newRes);
-        return newRes;
+    public boolean editCustomer(String customerID, String fname, String lname, Date dob, String password) {
+        return customerDAO.editCustomer(customerID, fname, lname, dob, password);
     }
 
-    public boolean cancelReservation(String reservationID) {
-        return reservations.removeIf(r -> r.getReservationID().equals(reservationID));
+    public Customer viewCustomer(String username) {
+        return customerDAO.viewCustomer(username);
     }
 
-    public boolean modifyReservation(String reservationID, String newFlightCode) {
-        Reservation res = getReservationById(reservationID);
-        if (res == null) return false;
-
-        Flight newFlight = viewFlight(newFlightCode);
-        if (newFlight == null) return false;
-
-        res.setFlight(newFlight);
-        return true;
-    }
-
-    public List<Reservation> viewBookingHistory() {
-        if (loggedInCustomer == null) return null;
-
-        List<Reservation> history = new ArrayList<>();
-        for (Reservation r : reservations) {
-            if (r.getCustomer().getCustomerID().equals(loggedInCustomer.getCustomerID())) {
-                history.add(r);
-            }
-        }
-        return history;
-    }
-
-    // Helper
-    private Reservation getReservationById(String id) {
-        for (Reservation r : reservations) {
-            if (r.getReservationID().equals(id)) {
-                return r;
-            }
-        }
-        return null;
+    public Customer fetchCustomerByID(String customerID) {
+        return customerDAO.fetchById(customerID);
     }
 }
