@@ -9,12 +9,18 @@ public class PaymentSystem {
         this.paymentStrategy = paymentStrategy;
     }
 
-    public void pay(Customer cardHolder, double amount) {
+    public boolean pay(Customer cardHolder, double amount) {
         if (paymentStrategy == null) {
             System.out.println("No payment method selected!");
         } else {
-            paymentStrategy.pay(cardHolder, amount);
+            if(paymentStrategy.pay(cardHolder, amount) == true){
+                return true;
+            }
+
+            return false;
         }
+
+        return false;
     }
 }
 
