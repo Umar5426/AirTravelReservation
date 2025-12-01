@@ -24,14 +24,11 @@ public class FlightService {
                                    price, departureAreaCode, arrivalAreaCode);
     }
 
-    // UPDATE – Update an existing flight
-    public boolean updateFlight(String flightID, String flightCode, String airLine, Date flightDate,
-                                String flightDuration, double price,
-                                AreaCode departureAreaCode, AreaCode arrivalAreaCode) {
-
-        return flightDAO.updateFlight(flightID, flightCode, airLine, flightDate,
-                                      flightDuration, price, departureAreaCode, arrivalAreaCode);
+    public boolean updateFlightDate(String flightID, Date newFlightDate) {
+        // Delegates directly to DAO
+        return flightDAO.updateFlightDate(flightID, newFlightDate);
     }
+
 
     // DELETE – Delete a flight by ID
     public boolean deleteFlight(String flightID) {
@@ -46,5 +43,12 @@ public class FlightService {
     // SEARCH – Search flights between two areas and dates
     public List<Flight> searchFlights(AreaCode from, AreaCode to, Date departDate, Date returnDate) {
         return flightDAO.searchFlights(from, to, departDate, returnDate);
+    }
+
+    // -----------------------------
+    // Get all flights (delegates to DAO)
+    // -----------------------------
+    public List<Flight> searchAllFlights() {
+        return flightDAO.getAllFlights();
     }
 }
