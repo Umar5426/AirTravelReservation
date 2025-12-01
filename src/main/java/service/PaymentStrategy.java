@@ -1,6 +1,8 @@
 package main.java.service;
 
+import main.java.model.Customer;
+
 public interface PaymentStrategy {
-    void pay(double amount);
+    boolean pay(Customer cardHolder, double amount);
 }
 
