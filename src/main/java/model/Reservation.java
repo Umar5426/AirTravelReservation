@@ -4,28 +4,46 @@ import java.util.Date;
 
 public class Reservation {
 
-    private static int nextId = 1;  // auto–increment counter (fallback for UI)
+    private static int nextId = 1;  // auto–increment counter for new reservations
 
     private String reservationID;
-    private int bookingDbId = -1;
     private Customer customer;
-    private Date dateBooked;
     private Flight flight;
+    private Date dateBooked;
     private double totalPrice;
 
-    // -----------------------
-    // Constructor
-    // -----------------------
-    public Reservation(Customer customer, Flight flight) {
-        this.reservationID = "R" + nextId++;  // e.g., R1, R2, R3...
+    // ========================
+    // Constructor for new reservation (auto-generates ID)
+    // ========================
+    public Reservation(Customer customer, Flight flight, double totalPrice) {
+        this.reservationID = generateReservationID();
         this.customer = customer;
         this.flight = flight;
-        this.dateBooked = new Date();         // today's date
+        this.totalPrice = totalPrice;
+        this.dateBooked = new Date(); // today's date
     }
 
-    // -----------------------
-    // Getters / Setters 
-    // -----------------------
+    // ========================
+    // Constructor for loading existing reservation (uses existing ID)
+    // ========================
+    public Reservation(String reservationID, Customer customer, Flight flight, Date dateBooked, double totalPrice) {
+        this.reservationID = reservationID;
+        this.customer = customer;
+        this.flight = flight;
+        this.dateBooked = dateBooked;
+        this.totalPrice = totalPrice;
+    }
+
+    // ========================
+    // Auto-generate reservation ID
+    // ========================
+    private String generateReservationID() {
+        return "R" + nextId++;
+    }
+
+    // ========================
+    // Getters & Setters
+    // ========================
     public String getReservationID() {
         return reservationID;
     }
@@ -34,8 +52,8 @@ public class Reservation {
         return customer;
     }
 
-    public Date getDateBooked() {
-        return dateBooked;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public Flight getFlight() {
@@ -46,12 +64,8 @@ public class Reservation {
         this.flight = flight;
     }
 
-    public int getBookingDbId() {
-        return bookingDbId;
-    }
-
-    public void setBookingDbId(int bookingDbId) {
-        this.bookingDbId = bookingDbId;
+    public Date getDateBooked() {
+        return dateBooked;
     }
 
     public void setDateBooked(Date dateBooked) {
