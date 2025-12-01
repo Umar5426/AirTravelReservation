@@ -1,100 +1,89 @@
 package main.java.model;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Flight {
-    private int id;
-    private String flightID;
+
+    private static final AtomicInteger nextId = new AtomicInteger(1); // thread-safe auto-increment
+
+    private String flightID;  // unique, auto-generated
     private String flightCode;
     private String airLine;
     private Date flightDate;
     private String flightDuration;
     private AreaCode departureAreaCode;
     private AreaCode arrivalAreaCode;
-    private int capacity;
     private double price;
 
+    // ========================
     // Constructors
-    public Flight() {}
-
-    public Flight(String flightID,
-                  String flightCode,
-                  String airline,
+    // ========================
+    // Constructor for creating a new Flight (auto-generates flightID)
+    public Flight(String flightCode,
+                  String airLine,
                   Date flightDate,
                   String flightDuration,
                   AreaCode departureAreaCode,
-                  AreaCode arrivalAreaCode) {
-        this.flightID = flightID;
+                  AreaCode arrivalAreaCode,
+                  double price) {
+        this.flightID = generateFlightID();
         this.flightCode = flightCode;
-        this.airLine = airline;
+        this.airLine = airLine;
         this.flightDate = flightDate;
         this.flightDuration = flightDuration;
         this.departureAreaCode = departureAreaCode;
         this.arrivalAreaCode = arrivalAreaCode;
+        this.price = price;
     }
 
-    public int getId() { return id; }
-    public String getFlightID(){
-        return flightID;
+    // Constructor for loading existing flights from DB (uses given flightID)
+    public Flight(String flightID,
+                  String flightCode,
+                  String airLine,
+                  Date flightDate,
+                  String flightDuration,
+                  AreaCode departureAreaCode,
+                  AreaCode arrivalAreaCode,
+                  double price) {
+        this.flightID = flightID;
+        this.flightCode = flightCode;
+        this.airLine = airLine;
+        this.flightDate = flightDate;
+        this.flightDuration = flightDuration;
+        this.departureAreaCode = departureAreaCode;
+        this.arrivalAreaCode = arrivalAreaCode;
+        this.price = price;
     }
 
-    public String getFlightCode() {
-        return flightCode;
+    // ========================
+    // Unique ID generator
+    // ========================
+    private String generateFlightID() {
+        return "F" + nextId.getAndIncrement(); // e.g., F1, F2, F3
     }
 
-    public String getAirLine() {
-        return airLine;
-    }
-
-    public Date getFlightDate() {
-        return flightDate;
-    }
-
-    public String getFlightDuration() {
-        return flightDuration;
-    }
-
-    public AreaCode getDepartureAreaCode() {
-        return departureAreaCode;
-    }
-
-    public AreaCode getArrivalAreaCode() {
-        return arrivalAreaCode;
-    }
-
-    public int getCapacity() { return capacity; }
+    // ========================
+    // Getters
+    // ========================
+    public String getFlightID() { return flightID; }
+    public String getFlightCode() { return flightCode; }
+    public String getAirLine() { return airLine; }
+    public Date getFlightDate() { return flightDate; }
+    public String getFlightDuration() { return flightDuration; }
+    public AreaCode getDepartureAreaCode() { return departureAreaCode; }
+    public AreaCode getArrivalAreaCode() { return arrivalAreaCode; }
     public double getPrice() { return price; }
 
+    // ========================
     // Setters
-    public void setId(int id) { this.id = id; }
-    public void setFlightID(String flightID) {
-        this.flightID = flightID;
-    }
-
-    public void setFlightCode(String flightCode) {
-        this.flightCode = flightCode;
-    }
-
-    public void setAirLine(String airLine) {
-        this.airLine= airLine;
-    }
-
-    public void setFlightDate(Date flightDate) {
-        this.flightDate = flightDate;
-    }
-
-    public void setFlightDuration(String flightDuration) {
-        this.flightDuration = flightDuration;
-    }
-
-    public void setDepartureAreaCode(AreaCode departureAreaCode) {
-        this.departureAreaCode = departureAreaCode;
-    }
-
-    public void setArrivalAreaCode(AreaCode arrivalAreaCode) {
-        this.arrivalAreaCode = arrivalAreaCode;
-    }
-
-    public void setCapacity(int capacity) { this.capacity = capacity; }
+    // ========================
+    public void setFlightCode(String flightCode) { this.flightCode = flightCode; }
+    public void setAirLine(String airLine) { this.airLine = airLine; }
+    public void setFlightDate(Date flightDate) { this.flightDate = flightDate; }
+    public void setFlightDuration(String flightDuration) { this.flightDuration = flightDuration; }
+    public void setDepartureAreaCode(AreaCode departureAreaCode) { this.departureAreaCode = departureAreaCode; }
+    public void setArrivalAreaCode(AreaCode arrivalAreaCode) { this.arrivalAreaCode = arrivalAreaCode; }
     public void setPrice(double price) { this.price = price; }
+
 }
