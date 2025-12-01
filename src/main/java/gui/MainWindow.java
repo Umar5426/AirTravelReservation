@@ -2,8 +2,8 @@ package main.java.gui;
 
 import java.awt.*;
 import javax.swing.*;
-import main.java.service.CustomerService;
 import main.java.model.Customer;
+import main.java.service.CustomerService;
 
 public class MainWindow extends JFrame {
 
@@ -163,10 +163,10 @@ public class MainWindow extends JFrame {
     private JButton styledButton(String text) {
         JButton btn = new JButton(text);
         btn.setBackground(SLATE);
-        btn.setForeground(NAVY);
+        btn.setForeground(ICE_WHITE);
         btn.setFont(new Font("Arial", Font.BOLD, 14));
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createLineBorder(NAVY, 2));
+        btn.setBorder(BorderFactory.createLineBorder(ICE_WHITE, 2));
         return btn;
     }
 
