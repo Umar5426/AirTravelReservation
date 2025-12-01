@@ -1,16 +1,19 @@
 package main.java.service;
 
+import main.java.model.Customer;
+
 public class CreditCardPayment implements PaymentStrategy {
     private String cardNumber;
-    private String cardHolder;
+    private Customer cardHolder;
 
-    public CreditCardPayment(String cardNumber, String cardHolder) {
+    public CreditCardPayment(String cardNumber, Customer cardHolder) {
         this.cardNumber = cardNumber;
         this.cardHolder = cardHolder;
     }
 
     @Override
-    public void pay(double amount) {
-        System.out.println("Paid " + amount + " using Credit Card: " + cardNumber);
+    public boolean pay(Customer cardHolder, double amount) {
+        System.out.println(cardHolder.fname + "Paid " + amount + " using Credit Card: " + cardNumber);
+        return true;
     }
 }
