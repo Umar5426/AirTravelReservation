@@ -1,8 +1,14 @@
 package main.java.gui;
 
+import main.java.model.AreaCode;
 import main.java.model.Customer;
 import main.java.model.Flight;
 import main.java.service.CustomerService;
+import main.java.service.FlightService;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +24,7 @@ public class FlightSearchWindow extends JFrame {
     private final boolean isGuest;
 
     private CustomerService customerService;
+    private FlightService flightService;
 
     // ========= COLOR THEME =========
     private final Color SLATE = new Color(0x2E3B4E);
@@ -33,6 +40,7 @@ public class FlightSearchWindow extends JFrame {
         this.isGuest = (customer == null);
 
         this.customerService = new CustomerService();
+        this.flightService = new FlightService();
 
         initializeUI();
         loadFlightResults();
@@ -97,8 +105,39 @@ public class FlightSearchWindow extends JFrame {
 
         flightsPanel.removeAll();
 
-        // TODO: Replace this with your actual searchFlights in DAO
-        List<Flight> flights = customerService.searchFlights(from, to, departDate);
+        // Convert strings to AreaCode enums
+        AreaCode departureCode;
+        AreaCode arrivalCode;
+        try {
+            departureCode = AreaCode.valueOf(from.toUpperCase());
+            arrivalCode = AreaCode.valueOf(to.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            JLabel errorLabel = new JLabel("Invalid departure or arrival code.", SwingConstants.CENTER);
+            errorLabel.setForeground(ICE_WHITE);
+            errorLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            flightsPanel.add(errorLabel);
+            revalidate();
+            return;
+        }
+
+        // Convert date strings to Date objects
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date departDateObj;
+        Date returnDateObj;
+        try {
+            departDateObj = sdf.parse(departDate);
+            returnDateObj = sdf.parse(returnDate);
+        } catch (ParseException e) {
+            JLabel errorLabel = new JLabel("Invalid departure or return date format.", SwingConstants.CENTER);
+            errorLabel.setForeground(ICE_WHITE);
+            errorLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            flightsPanel.add(errorLabel);
+            revalidate();
+            return;
+        }
+
+        // Fetch flights from service
+        List<Flight> flights = flightService.searchFlights(departureCode, arrivalCode, departDateObj, returnDateObj);
 
         if (flights == null || flights.isEmpty()) {
             JLabel emptyLabel = new JLabel("No flights found.", SwingConstants.CENTER);
@@ -131,7 +170,7 @@ public class FlightSearchWindow extends JFrame {
         JLabel info = new JLabel(
                 "<html><b>Airline:</b> " + flight.getAirLine() +
                 "<br><b>Date:</b> " + flight.getFlightDate() +
-                "<br><b>Price: $500 </b> </html>"
+                "<br><b>Price:</b> "+ flight.getPrice() + "</html>"
         );
         info.setForeground(ICE_WHITE);
         info.setFont(new Font("Arial", Font.PLAIN, 16));
