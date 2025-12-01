@@ -1,73 +1,50 @@
 package main.java.service;
 
+import main.java.dao.FlightDAO;
 import main.java.model.Flight;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import main.java.model.AreaCode;
 
+import java.util.Date;
+import java.util.List;
 
 public class FlightService {
 
-    // The temporary in-memory list is written below.
-    private List<Flight> flights = new ArrayList<>();
-    
+    private FlightDAO flightDAO;
+
     public FlightService() {
-        // Constructor is here
-        // Initialize the DAO here when ready
-        // this.flightDAO = new FlightDAO();
+        this.flightDAO = new FlightDAO(); // Initialize the DAO
     }
 
     // CREATE – Add a new flight
+    public boolean addFlight(String flightCode, String airLine, Date flightDate,
+                             String flightDuration, double price,
+                             AreaCode departureAreaCode, AreaCode arrivalAreaCode) {
 
-    public void addFlight(Flight flight) {
-        // TEMPORARY: stores in memory
-        flights.add(flight);
-
-        // When DB is ready:
-        // flightDAO.insertFlight(flight);     // Uncomment these when needed 
-
-        System.out.println("FlightService: addFlight() is called for " + flight.flightCode);
+        return flightDAO.addFlight(flightCode, airLine, flightDate, flightDuration,
+                                   price, departureAreaCode, arrivalAreaCode);
     }
 
-    // Updating – Updates an existing flight
-    public void updateFlight(String flightID, Flight updatedFlight) {
-        // There is the Temporary - in-memory update written here
-        for (int i = 0; i < flights.size(); i++) {
-            if (flights.get(i).flightID.equals(flightID)) {
-                flights.set(i, updatedFlight);
-                System.out.println("FlightService: flight has been updated (in-memory).");
-                return;
-            }
-        }
+    // UPDATE – Update an existing flight
+    public boolean updateFlight(String flightID, String flightCode, String airLine, Date flightDate,
+                                String flightDuration, double price,
+                                AreaCode departureAreaCode, AreaCode arrivalAreaCode) {
 
-        // When DB is ready:
-        // flightDAO.updateFlight(flightID, updatedFlight);
-
-        System.out.println("FlightService: updateFlight() is called for ID " + flightID);
+        return flightDAO.updateFlight(flightID, flightCode, airLine, flightDate,
+                                      flightDuration, price, departureAreaCode, arrivalAreaCode);
     }
 
-    
-    // Delete – Delete a flight by ID
- 
-    public void deleteFlight(String flightID) {
-        // TEMPORARY in-memory delete here
-        flights.removeIf(f -> f.flightID.equals(flightID));
-
-        // When DB is ready:
-        // flightDAO.deleteFlight(flightID);
-
-        System.out.println("FlightService: deleteFlight() is called for ID " + flightID);
+    // DELETE – Delete a flight by ID
+    public boolean deleteFlight(String flightID) {
+        return flightDAO.removeFlight(flightID);
     }
 
-    // Read – Get all flights (view flight schedule)
-    public List<Flight> getAllFlights() {
-        // Temporary return in-memory list
-
-        // When DB is ready:
-        // return flightDAO.getAllFlights();
-
-        return Collections.unmodifiableList(flights);
+    // FETCH a single flight by flightID
+    public Flight getFlightByID(String flightID) {
+        return flightDAO.fetchFlightByID(flightID);
     }
 
-    // Search methods can be added here later if needed
+    // SEARCH – Search flights between two areas and dates
+    public List<Flight> searchFlights(AreaCode from, AreaCode to, Date departDate, Date returnDate) {
+        return flightDAO.searchFlights(from, to, departDate, returnDate);
+    }
 }
