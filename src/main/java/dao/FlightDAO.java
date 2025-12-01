@@ -65,34 +65,27 @@ public class FlightDAO {
     }
 
     // -----------------------------
-    // Update flight details
+    // Update only the flight date
     // -----------------------------
-    public boolean updateFlight(String flightID, String flightCode, String airLine, Date flightDate,
-                                String flightDuration, double price, AreaCode departureAreaCode,
-                                AreaCode arrivalAreaCode) {
+    public boolean updateFlightDate(String flightID, Date newFlightDate) {
 
-        String sql = "UPDATE Flight SET flight_code=?, airline=?, flight_date=?, duration=?, price=?, departure_area=?, arrival_area=? " +
-                     "WHERE flightID=?";
+        String sql = "UPDATE Flight SET flight_date = ? WHERE flightID = ?";
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, flightCode);
-            pstmt.setString(2, airLine);
-            pstmt.setDate(3, new java.sql.Date(flightDate.getTime()));
-            pstmt.setString(4, flightDuration);
-            pstmt.setDouble(5, price);
-            pstmt.setString(6, departureAreaCode.name());
-            pstmt.setString(7, arrivalAreaCode.name());
-            pstmt.setString(8, flightID);
+            pstmt.setDate(1, new java.sql.Date(newFlightDate.getTime()));
+            pstmt.setString(2, flightID);
 
-            return pstmt.executeUpdate() > 0;
+            int updated = pstmt.executeUpdate();
+            return updated > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
     // -----------------------------
     // Search flights
@@ -164,4 +157,38 @@ public class FlightDAO {
 
         return null;
     }
+
+    // -----------------------------
+    // Fetch all flights
+    // -----------------------------
+    public List<Flight> getAllFlights() {
+        List<Flight> flights = new ArrayList<>();
+        String sql = "SELECT * FROM Flight";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                // Build Flight object from DB row
+                Flight flight = new Flight(
+                    rs.getString("flightID"),
+                    rs.getString("flight_code"),
+                    rs.getString("airline"),
+                    rs.getDate("flight_date"),
+                    rs.getString("duration"),
+                    AreaCode.valueOf(rs.getString("departure_area")),
+                    AreaCode.valueOf(rs.getString("arrival_area")),
+                    rs.getDouble("price")
+                );
+                flights.add(flight);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return flights;
+    }
+
 }
