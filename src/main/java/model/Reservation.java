@@ -4,12 +4,14 @@ import java.util.Date;
 
 public class Reservation {
 
-    private static int nextId = 1;  // auto–increment counter
+    private static int nextId = 1;  // auto–increment counter (fallback for UI)
 
     private String reservationID;
+    private int bookingDbId = -1;
     private Customer customer;
     private Date dateBooked;
     private Flight flight;
+    private double totalPrice;
 
     // -----------------------
     // Constructor
@@ -42,5 +44,25 @@ public class Reservation {
 
     public void setFlight(Flight flight) {
         this.flight = flight;
+    }
+
+    public int getBookingDbId() {
+        return bookingDbId;
+    }
+
+    public void setBookingDbId(int bookingDbId) {
+        this.bookingDbId = bookingDbId;
+    }
+
+    public void setDateBooked(Date dateBooked) {
+        this.dateBooked = dateBooked;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }

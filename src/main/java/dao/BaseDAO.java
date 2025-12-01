@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public abstract class BaseDAO {
 
-    // Common method to get connection from Singleton
+    // get connection from Singleton
     protected Connection getConnection() {
         return DBConnection.getInstance().getConnection();
     }
