@@ -23,19 +23,25 @@ public class CustomerService {
     // Authentication
     // ---------------------
 
-    public boolean login(String username, String password) {
-        for (Customer c : customers) {
-            if (c.getUsername().equals(username) && c.getPassword().equals(password)) {
-                loggedInCustomer = c;
-                return true;
-            }
-        }
-        return false;
-    }
+   public Customer login(String username, String password) {
 
-    public void logout() {
-        loggedInCustomer = null;
+    try {
+        // Check if user exists in the users table
+        String role = authDAO.login(username, password);
+        if (role == null) return null;  
+
+        // Fetch full Customer object from DB
+        Customer c = customerDAO.getCustomerByUsername(username, password);
+        if (c == null) return null;
+
+        this.loggedInCustomer = c;
+        return c;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return null;
     }
+}
 
     // ---------------------
     // Flight Searching (Using DAO)
