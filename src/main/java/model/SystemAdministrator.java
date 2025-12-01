@@ -1,4 +1,5 @@
 package main.java.model;
+
 import java.util.List;
 import main.java.service.FlightService;
 
@@ -6,9 +7,11 @@ import main.java.service.FlightService;
 
 public class SystemAdministrator {
 
-    // Fields are set below
-    private boolean loggedIn = false;
-    private Customer loggedCustomer;
+    // Static admin credentials
+    private static final String ADMIN_USERNAME = "admin01";
+    private static final String ADMIN_PASSWORD = "admin02";
+	// Fields are set below 
+	private boolean loggedIn = false;
     private FlightService flightService;
 
     // Constructor is written here
@@ -17,22 +20,18 @@ public class SystemAdministrator {
     }
     
     // Login
-    public boolean login(String username, String password, List<Customer> customers) {
+    public boolean login(String username, String password) {
 
-    for (Customer c : customers) {
-        if (c.getUsername().equals(username) && c.getPassword().equals(password)) {
+        if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
             this.loggedIn = true;
-            this.loggedCustomer = c;
-
-            System.out.println("Login is successful! You are Welcome, " 
-                               + c.getFname() + " " + c.getLname());
+            System.out.println("System Admin login successful! Welcome, Admin.");
             return true;
         }
+
+        System.out.println("Invalid admin username or password.");
+        return false;
     }
 
-    System.out.println("Invalid username or password.");
-    return false;
-}
 
 	
     // Admin Functions
