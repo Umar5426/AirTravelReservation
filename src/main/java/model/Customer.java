@@ -2,48 +2,23 @@ package main.java.model;
 
 import java.util.Date;
 
-public class Customer {
+public abstract class Customer {
 
-    private int id;             // DB primary key
-    private String customerID;  // business-level ID
+    protected int id;             // primary key from database
+    protected String customerID;  // business ID like C123, etc.
 
-    private String fname;
-    private String lname;
-    private Date dob;
+    protected String fname;
+    protected String lname;
+    protected Date dob;
 
-    private String username;
-    private String password;
+    protected String username;
+    protected String password;
 
-    private String email;
-    private String phone;
+    protected String email;
+    protected String phone;
 
-    // Full constructor for DB use
-    public Customer(int id, String customerID, String fname, String lname,
-                    Date dob, String username, String password,
-                    String email, String phone) {
-
-        this.id = id;
-        this.customerID = customerID;
-        this.fname = fname;
-        this.lname = lname;
-        this.dob = dob;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.phone = phone;
-    }
-
-    // Minimal constructor if needed
-    public Customer(String fname, String lname, Date dob,
-                    String customerID, String username, String password) {
-
-        this.fname = fname;
-        this.lname = lname;
-        this.dob = dob;
-        this.customerID = customerID;
-        this.username = username;
-        this.password = password;
-    }
+    // Empty constructor for flexibility
+    public Customer() {}
 
     // Getters
     public int getId() { return id; }
@@ -56,6 +31,15 @@ public class Customer {
     public String getEmail() { return email; }
     public String getPhone() { return phone; }
 
-    // Setters as needed
+    // Setters
+    public void setId(int id) { this.id = id; }
+    public void setCustomerID(String customerID) { this.customerID = customerID; }
+    public void setFname(String fname) { this.fname = fname; }
+    public void setLname(String lname) { this.lname = lname; }
+    public void setDob(Date dob) { this.dob = dob; }
+    public void setUsername(String username) { this.username = username; }
+    public void setPassword(String password) { this.password = password; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
 }
 
